@@ -29,13 +29,6 @@ namespace TeamZero.SceneManagement
         }
 
         public SceneView CreateView(string sceneName)
-        {
-            if (string.IsNullOrEmpty(sceneName))
-            {
-                
-            }
-            
-            return SceneView.Create(sceneName, _order, _orderFactory, _visibleFactory, _userInputFactory);
-        }
+            => SceneView.Create(sceneName, _order, _orderFactory, _visibleFactory, _userInputFactory);
     }
 }

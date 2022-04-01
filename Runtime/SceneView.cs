@@ -1,7 +1,9 @@
 #nullable enable
 using System;
 using System.Diagnostics.CodeAnalysis;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 
 namespace TeamZero.SceneManagement
@@ -38,7 +40,48 @@ namespace TeamZero.SceneManagement
             _order = order;
         }
 
-        public bool Loaded() => false;
+        public bool Loaded() => _loading && !_processUnload.HasValue;
+        private bool _loading = false;
+
+        private UniTask? _processLoad;
+        public async UniTask LoadAsync()
+        {
+            if (!_loading)
+            {
+                _loading = true;
+                
+                if (_processUnload.HasValue)
+                    await _processUnload.Value;
+
+                _processLoad = SceneManager.LoadSceneAsync(_sceneName).ToUniTask();
+                await _processLoad.Value;
+                _processLoad = null;
+            }
+            else
+            {
+                LogSystem.Main.Warning($"{nameof(SceneView)} already loaded or in process loading");
+            }
+        }
+        
+        private UniTask? _processUnload;
+        public async UniTask UnloadAsync()
+        {
+            if (_loading)
+            {
+                _loading = false;
+                
+                if (_processLoad.HasValue)
+                    await _processLoad.Value;
+
+                _processUnload = SceneManager.UnloadSceneAsync(_sceneName).ToUniTask();
+                await _processUnload.Value;
+                _processUnload = null;
+            }
+            else
+            {
+                LogSystem.Main.Warning($"{nameof(SceneView)} already unloaded or in process unloading");
+            }
+        }
 
         public bool GetRootObject([NotNullWhen(true)] out GameObject? root)
         {
