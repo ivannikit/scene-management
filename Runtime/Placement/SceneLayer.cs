@@ -1,5 +1,3 @@
-using TeamZero.Core.Logging;
-
 #nullable enable
 
 namespace TeamZero.SceneManagement

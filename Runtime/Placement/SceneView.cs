@@ -1,5 +1,6 @@
 #nullable enable
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -8,15 +9,13 @@ using UnityEngine.SceneManagement;
 
 namespace TeamZero.SceneManagement
 {
-    public class SceneView
+    public class SceneView : ISceneView
     {
         private readonly string _sceneName;
         private readonly int _order;
         private IOrderStrategy _orderStrategy = default!;
         private IVisibleStrategy _visibleStrategy = default!;
         private IUserInputStrategy _userInputStrategy = default!;
-        
-        private GameObject? _root;
 
         public static SceneView Create(string sceneName, int order,
             IStrategyFactory<IOrderStrategy> orderFactory, 
@@ -24,9 +23,10 @@ namespace TeamZero.SceneManagement
             IStrategyFactory<IUserInputStrategy> userInputFactory)
         {
             SceneView instance = new SceneView(sceneName, order);
-            instance._orderStrategy = orderFactory.Create(instance);
-            instance._visibleStrategy = visibleFactory.Create(instance);
-            instance._userInputStrategy = userInputFactory.Create(instance);
+            var orderStrategy = orderFactory.Create(instance);
+            var visibleStrategy = visibleFactory.Create(instance);
+            var userInputStrategy = userInputFactory.Create(instance);
+            instance.Inject(orderStrategy, visibleStrategy, userInputStrategy);
 
             return instance;
         }
@@ -38,6 +38,25 @@ namespace TeamZero.SceneManagement
             
             _sceneName = sceneName;
             _order = order;
+        }
+
+        private void Inject(IOrderStrategy orderStrategy, IVisibleStrategy visibleStrategy,
+            IUserInputStrategy userInputStrategy)
+        {
+            _orderStrategy = orderStrategy;
+            _visibleStrategy = visibleStrategy;
+            _userInputStrategy = userInputStrategy;
+            Rebuild();
+        }
+
+        private void Rebuild()
+        {
+            if (Loaded())
+            {
+                _orderStrategy.SetOrder(_order);
+                _visibleStrategy.RefreshVisible();
+                _userInputStrategy.RefreshInteractable();
+            }
         }
 
         public bool Loaded() => _loading && !_processUnload.HasValue;
@@ -53,9 +72,10 @@ namespace TeamZero.SceneManagement
                 if (_processUnload.HasValue)
                     await _processUnload.Value;
 
-                _processLoad = SceneManager.LoadSceneAsync(_sceneName).ToUniTask();
+                _processLoad = SceneManager.LoadSceneAsync(_sceneName, LoadSceneMode.Additive).ToUniTask();
                 await _processLoad.Value;
                 _processLoad = null;
+                Rebuild();
             }
             else
             {
@@ -75,6 +95,7 @@ namespace TeamZero.SceneManagement
 
                 _processUnload = SceneManager.UnloadSceneAsync(_sceneName).ToUniTask();
                 await _processUnload.Value;
+                _root = null;
                 _processUnload = null;
             }
             else
@@ -89,10 +110,47 @@ namespace TeamZero.SceneManagement
             root = null;
             if (Loaded())
             {
-                root = _root;
+                root = Root();
+                result = root is { };
             }
 
             return result;
         }
+
+        private GameObject? _root;
+        private GameObject? Root()
+        {
+            if (Loaded())
+            {
+                if (_root is null)
+                {
+                    Scene scene = SceneManager.GetSceneByName(_sceneName);
+                    int rootCount = scene.rootCount;
+                    if (rootCount != 0)
+                    {
+                        if(rootCount > 1)
+                            LogSystem.Main.Warning("Scene have more than one root GameObject");
+                        
+                        List<GameObject> rootObjects = new List<GameObject>(scene.rootCount);
+                        scene.GetRootGameObjects(rootObjects);
+                        _root = rootObjects[0];
+                    }
+                    else
+                    {
+                        LogSystem.Main.Error("Scene isn't have root GameObject");
+                    }
+                }
+                
+                return _root;
+            }
+
+            return null;
+        }
+
+        public bool Interactable() => _userInputStrategy.Interactable();
+        public void SetInteractable(bool value) => _userInputStrategy.SetInteractable(value);
+        
+        public bool Visible() => _visibleStrategy.Visible();
+        public void SetVisible(bool value) => _visibleStrategy.SetVisible(value);
     }
 }

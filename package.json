@@ -1,0 +1,14 @@
+{
+  "name": "com.teamzero.scene-management",
+  "displayName": "TeamZero Scene Management",
+  "version": "1.0.0",
+  "unity": "2020.3",
+  "description": "TeamZero Scene Management",
+  "keywords": [
+    "TeamZero"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git@gitlab.com:team_z/tools/scene-management.git#master"
+  }
+}

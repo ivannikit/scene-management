@@ -6,5 +6,6 @@ namespace TeamZero.SceneManagement
     {
         bool Visible();
         void SetVisible(bool value);
+        void RefreshVisible();
     }
 }

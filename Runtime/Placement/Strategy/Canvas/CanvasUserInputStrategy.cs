@@ -28,6 +28,8 @@ namespace TeamZero.SceneManagement.UnityUI
                 _raycaster.enabled = value;
         }
 
+        public void RefreshInteractable() => SetInteractable(_interactable);
+
         private void InitRaycaster()
         {
             if (_raycaster is null && _view.Loaded())
@@ -35,8 +37,11 @@ namespace TeamZero.SceneManagement.UnityUI
                 if (_view.GetRootObject(out GameObject? root))
                 {
                     _raycaster = root.GetComponent<GraphicRaycaster>();
-                    if (_raycaster is { })
-                        _raycaster.enabled = _interactable;
+                    // ReSharper disable once ConvertIfStatementToNullCoalescingExpression
+                    if (_raycaster is null)
+                        _raycaster = root.AddComponent<GraphicRaycaster>();
+                    
+                    _raycaster.enabled = _interactable;
                 }
             }
         }

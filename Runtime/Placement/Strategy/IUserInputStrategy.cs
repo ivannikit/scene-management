@@ -6,5 +6,6 @@ namespace TeamZero.SceneManagement
     {
         bool Interactable();
         void SetInteractable(bool value);
+        void RefreshInteractable();
     }
 }

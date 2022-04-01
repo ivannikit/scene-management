@@ -11,7 +11,7 @@ namespace TeamZero.SceneManagement
         private readonly IStrategyFactory<IVisibleStrategy> _visibleFactory;
         private readonly IStrategyFactory<IUserInputStrategy> _userInputFactory;
 
-        public static ScenePlacement CreateOnUnityUI(Log log) => new ScenePlacement(
+        public static ScenePlacement CreateOnUnityUI() => new ScenePlacement(
             CanvasOrderFactory.Create(), CanvasVisibleFactory.Create(), CanvasUserInputFactory.Create());
         
         private ScenePlacement(

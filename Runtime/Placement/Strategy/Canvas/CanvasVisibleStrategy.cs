@@ -24,6 +24,8 @@ namespace TeamZero.SceneManagement.UnityUI
             Rebuild();
         }
 
+        public void RefreshVisible() => Rebuild();
+
         private void Rebuild()
         {
             if (_view.GetRootObject(out GameObject? root))
