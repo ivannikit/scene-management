@@ -9,6 +9,6 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git@gitlab.com:team_z/tools/scene-management.git#master"
+    "url": "git@github.com:ivannikit/scene-management.git#main"
   }
 }
