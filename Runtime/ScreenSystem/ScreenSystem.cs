@@ -38,5 +38,19 @@ namespace TeamZero.SceneManagement.ScreenManagement
             LogSystem.Main.Error($"Switch transition in progress, ignore switch to {sceneName}");
             return null;
         }
+
+        public async UniTask<bool> CloseCurrentView()
+        {
+            if (!_activeTransition && _view != null)
+            {
+                await _view.UnloadAsync();
+                _view = null;
+                
+                return true;
+            }
+            
+            LogSystem.Main.Error($"Current view is null or transition in progress, ignore close current view");
+            return false;
+        }
     }
 }
