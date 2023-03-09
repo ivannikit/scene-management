@@ -1,11 +1,11 @@
 #nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-
 
 namespace TeamZero.SceneManagement
 {
@@ -71,10 +71,12 @@ namespace TeamZero.SceneManagement
                 
                 if (_processUnload.HasValue)
                     await _processUnload.Value;
-
+                
                 _processLoad = SceneManager.LoadSceneAsync(_sceneName, LoadSceneMode.Additive).ToUniTask();
                 await _processLoad.Value;
+                
                 _processLoad = null;
+                FindScene();
                 Rebuild();
             }
             else
@@ -96,6 +98,7 @@ namespace TeamZero.SceneManagement
                 _processUnload = SceneManager.UnloadSceneAsync(_sceneName).ToUniTask();
                 await _processUnload.Value;
                 _root = null;
+                _identifier = null;
                 _processUnload = null;
             }
             else
@@ -124,14 +127,14 @@ namespace TeamZero.SceneManagement
             {
                 if (_root is null)
                 {
-                    Scene scene = SceneManager.GetSceneByName(_sceneName);
+                    Scene scene = FindScene();
                     int rootCount = scene.rootCount;
                     if (rootCount != 0)
                     {
                         if(rootCount > 1)
                             LogSystem.Main.Warning("Scene have more than one root GameObject");
                         
-                        List<GameObject> rootObjects = new List<GameObject>(scene.rootCount);
+                        List<GameObject> rootObjects = new(scene.rootCount);
                         scene.GetRootGameObjects(rootObjects);
                         _root = rootObjects[0];
                     }
@@ -145,6 +148,46 @@ namespace TeamZero.SceneManagement
             }
 
             return null;
+        }
+        
+        private SceneIdentifier? _identifier;
+        private Scene FindScene()
+        {
+            int count = SceneManager.sceneCount;
+            for (int i = count - 1; i >= 0; i--)
+            {
+                Scene scene = SceneManager.GetSceneAt(i);
+                if (scene.name == _sceneName)
+                {
+                    int rootCount = scene.rootCount;
+                    if (rootCount != 0)
+                    {
+                        if(rootCount > 1)
+                            LogSystem.Main.Warning("Scene have more than one root GameObject");
+                    
+                        List<GameObject> rootObjects = new(scene.rootCount);
+                        scene.GetRootGameObjects(rootObjects);
+                        GameObject rootObject = rootObjects[0];
+                        
+                        SceneIdentifier identifierInScene = rootObject.GetComponent<SceneIdentifier>();
+                        if (_identifier == null)
+                        {
+                            if (identifierInScene == null)
+                            {
+                                _identifier = rootObject.AddComponent<SceneIdentifier>();
+                                return scene;
+                            }
+                        }
+                        else if(_identifier == identifierInScene)
+                        {
+                            return scene;
+                        }
+                    }
+                }
+            }
+            
+            Debug.LogError($"loaded scene '{_sceneName}' not found");
+            return SceneManager.GetSceneByName(_sceneName);
         }
 
         public bool Interactable() => _userInputStrategy.Interactable();

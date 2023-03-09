@@ -50,6 +50,7 @@ namespace TeamZero.SceneManagement.ScreenManagement
             }
             
             LogSystem.Main.Error($"Current view is null or transition in progress, ignore close current view");
+            LogSystem.Main.Error($"_activeTransition: {_activeTransition}, _view is null: {_view == null}");
             return false;
         }
     }

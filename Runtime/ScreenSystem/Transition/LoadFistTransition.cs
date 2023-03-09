@@ -22,7 +22,7 @@ namespace TeamZero.SceneManagement.ScreenManagement
         public async UniTask<AnimateView> Switch(SceneView inView, AnimateView? outView)
         {
             UniTask? unload = null;
-            if (outView != null)
+            if (outView != null && outView.Loaded())
                 unload = outView.UnloadAsync();
 
             IViewAnimator animator = _factory.CreateAnimator(inView);
