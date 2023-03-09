@@ -23,7 +23,7 @@ namespace TeamZero.SceneManagement.ScreenManagement
         public bool ActiveTransition() => _activeTransition;
         private bool _activeTransition = false;
 
-        public async UniTask SwitchToAsync(string sceneName, IScreenTransition transition)
+        public async UniTask<ISceneView?> SwitchToAsync(string sceneName, IScreenTransition transition)
         {
             if (!_activeTransition)
             {
@@ -31,27 +31,27 @@ namespace TeamZero.SceneManagement.ScreenManagement
                 
                 SceneView next = _layer.CreateView(sceneName);
                 _view = await transition.Switch(next, _view);
-                /*UniTask? unload = null;
-                if (_view != null)
-                {
-                    unload = _view.UnloadAsync();
-                    _view = null;
-                }
-
-                SceneView next = _layer.CreateView(sceneName);
-                _view = AnimateView.CreateNotAnimated(next);
-                await _view.LoadAsync();
-                await _view.ShowAsync();
-
-                if (unload.HasValue)
-                    await unload.Value;*/
-
                 _activeTransition = false;
+                return _view;
             }
-            else
+            
+            LogSystem.Main.Error($"Switch transition in progress, ignore switch to {sceneName}");
+            return null;
+        }
+
+        public async UniTask<bool> CloseCurrentView()
+        {
+            if (!_activeTransition && _view != null)
             {
-                LogSystem.Main.Error($"Switch transition in progress, ignore switch to {sceneName}");
+                await _view.UnloadAsync();
+                _view = null;
+                
+                return true;
             }
+            
+            LogSystem.Main.Error($"Current view is null or transition in progress, ignore close current view");
+            LogSystem.Main.Error($"_activeTransition: {_activeTransition}, _view is null: {_view == null}");
+            return false;
         }
     }
 }

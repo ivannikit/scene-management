@@ -11,7 +11,7 @@ namespace TeamZero.SceneManagement
         private readonly Queue<AnimateView> _queue;
         private readonly Func<SceneView, IViewAnimator> _animatorFactory;
         private AnimateView? _view;
-        
+
         public static PopupSystem CreateOnUnityUI(int order, int capacity = 2)
         {
             var placement = ScenePlacement.CreateOnUnityUI();
@@ -28,6 +28,8 @@ namespace TeamZero.SceneManagement
             _queue = new Queue<AnimateView>(capacity);
             _view = null;
         }
+
+        public bool ViewActive() => _view != null;
 
         public async UniTask ShowAsync(string sceneName)
         {

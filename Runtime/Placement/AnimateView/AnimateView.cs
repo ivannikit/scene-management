@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
@@ -33,7 +34,7 @@ namespace TeamZero.SceneManagement
 
         public async UniTask UnloadAsync() => await _view.UnloadAsync();
 
-        public bool GetRootObject(out GameObject? root) => _view.GetRootObject(out root);
+        public bool GetRootObject([NotNullWhen(true)] out GameObject? root) => _view.GetRootObject(out root);
 
         public bool Interactable() => _view.Interactable();
 
